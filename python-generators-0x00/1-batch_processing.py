@@ -38,8 +38,15 @@ def stream_users_in_batches(batch_size):
         print(f"Database error: {e}")
 
 
-def def batch_processing(batch_size):
-    for batch in stream_users_in_batches(batch_size):
-        for user in batch:
-            if float(user.get('age', 0)) > 25:
-                yield user
+def batch_processing(batch_size):
+    """
+    Processes all batches, filters users over age 25, and returns a single combined list.
+    """
+    all_filtered_users = []  # This will hold everything
+
+    for batch in stream_users_in_batches(batch_size):  # Get each batch from the generator
+        filtered = [user for user in batch if float(user.get('age', 0)) > 25]
+        all_filtered_users.extend(filtered)  # Add filtered users to the final list
+
+    return all_filtered_users
+
