@@ -79,4 +79,52 @@ def create_table(connection):
         if cursor:
             cursor,close()
 
-def insert_data(connection, data)
+path = user_data.csv
+
+def insert_data(connection, path):
+    try:
+        cursor = connection.cursor()
+        with open(path, 'r') as f:
+            reader = csv.DictReader(path)
+            inserted_count = 0
+            skipped_count = 0
+
+            for row in reader:
+                try:
+                    #exctract fields safely
+                    name = row.get('name', '').strip()
+                    email = row.get('email', '').strip()
+                    age_str = row.get('age', '').strip()
+
+                    #convert age safley
+                    age = Decimal(age_str)
+
+                    #generate unique user_id
+                    user_id = str(uuid.uuid4())
+
+                    #insert into database
+                    cursor.execute("""
+                        INSERT INTO user_data (user_id, name, email, age)
+                        VALUES (%s, %s, %s, %s)
+                        """,(user_id, name, email, age))
+
+                        inserted_count += 1
+
+                except Error as e:
+                    print(f"Skipped row: {row} - Reason: {e}")
+
+                    skipped_count += 1
+
+            connection.commit()
+            print(f"Inserted {inserted_count} records succefully")
+            print(f"Skipped {skipped_count} bad records")
+
+
+            except FileNotFoundError:
+                print(f"CSV fil {path} not found.")
+            except mysql.connector.Error as e:
+                print('Database error during insertion: {e}')
+            
+            finally:
+                if cursor:
+                    cursor.close()
