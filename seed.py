@@ -2,10 +2,9 @@
 
 import mysql.connector
 from mysql.connector import Error
-from contextlib import contextmanager
 import uuid
 import csv
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from dotenv import load_dotenv
 import os
 
@@ -16,6 +15,10 @@ DB_HOST = os.getenv('DB_HOST')
 DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
+
+# Ensure environment variables are set
+if not all([DB_HOST, DB_USER, DB_PASSWORD, DB_NAME]):
+    raise ValueError("Missing one or more database environment variables in your .env file.")
 
 def connect_db():
     try:
@@ -75,12 +78,10 @@ def create_table(connection):
         if cursor:
             cursor.close()
 
-path = 'user_data.csv'
-
-def insert_data(connection, path):
+def insert_data(connection, path='user_data.csv'):
     try:
         cursor = connection.cursor()
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             inserted_count = 0
             skipped_count = 0
@@ -91,7 +92,10 @@ def insert_data(connection, path):
                     email = row.get('email', '').strip()
                     age_str = row.get('age', '').strip()
 
-                    age = Decimal(age_str) if age_str else Decimal('0.00')
+                    try:
+                        age = Decimal(age_str)
+                    except (InvalidOperation, ValueError):
+                        age = Decimal('0.00')  # Fallback age if bad value
 
                     user_id = str(uuid.uuid4())
 
@@ -117,3 +121,16 @@ def insert_data(connection, path):
     finally:
         if cursor:
             cursor.close()
+
+# Run the process
+if __name__ == "__main__":
+    conn = connect_db()
+    if conn:
+        create_database(conn)
+        conn.close()
+
+    conn = connect_to_prodev()
+    if conn:
+        create_table(conn)
+        insert_data(conn, path='user_data.csv')
+        conn.close()
