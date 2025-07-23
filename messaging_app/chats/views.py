@@ -1,7 +1,8 @@
 from .serializers import MessageSerializer
 from rest_framework import generics
 from .models import Message, Conversation
-from rest_framework.exceptions import PermissionDenied
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsOwner, IsParticipantOfConversation
 
@@ -19,17 +20,25 @@ class MessageListCreateAPIView(generics.ListCreateAPIView):
         conversation_id = self.request.data.get('conversation')
 
         if not conversation_id:
-            raise PermissionDenied(detail="conversation_id is required.")
-
+            return Response(
+                {"detail": "conversation_id is required."},
+                status=status.HTTP_403_FORBIDDEN
+                )
         try:
             conversation = Conversation.objects.get(id=conversation_id)
         except Conversation.DoesNotExist:
-            raise PermissionDenied(detail="Conversation not found.")
-
+            return Response(
+                {"detail": "Conversation not found."},
+                status=status.HTTP_403_FORBIDDEN
+                )
         if self.request.user not in conversation.participants.all():
-            raise PermissionDenied(detail="You are not a participant in this conversation.")
+            return Response(
+                {"detail": "You are not a participant in this conversation."},
+                status=status.HTTP_403_FORBIDDEN
+                )
 
         serializer.save(author=self.request.user)
+
 
 
 # Retrieve, update, or delete a message — only if the user is the owner and in the conversation
