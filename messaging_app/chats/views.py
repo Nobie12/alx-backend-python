@@ -2,7 +2,7 @@ from .serializers import MessageSerializer
 from rest_framework import generics
 from .models import Message
 from rest_framework.permissions import IsAuthenticated
-from .permission import IsOwner
+from .permissions import IsOwner
 
 
 # Create your views here.
