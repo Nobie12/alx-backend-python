@@ -20,7 +20,7 @@ class MessageListCreateAPIView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # Only messages where the user is a participant of the conversation
-        return Message.objects.filter(conversation__participants=self.request.user).order_by('-created_at')
+        return Message.objects.filter(conversation__participants=self.request.user).order_by('-timestamp')
 
     def perform_create(self, serializer):
         conversation_id = self.request.data.get('conversation')
