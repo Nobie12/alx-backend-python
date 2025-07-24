@@ -13,7 +13,7 @@ class MessageSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return Message.objects.create(author=user, **validated_data)
 
-class RegisterSerializer(ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'password')
