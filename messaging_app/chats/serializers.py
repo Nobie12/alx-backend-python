@@ -9,10 +9,6 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ['id', 'author', 'conversation', 'content', 'timestamp']
         read_only_fields = ['author', 'timestamp']
 
-    def create(self, validated_data):
-        user = self.context['request'].user
-        return Message.objects.create(author=user, **validated_data)
-
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
