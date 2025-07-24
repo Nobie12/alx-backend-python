@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Message
+from .models import Message, Conversation
 from django.contrib.auth.models import User
 
 
@@ -21,3 +21,12 @@ class RegisterSerializer(ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+class ConversationSerializer(serializers.ModelSerializer):
+    participants = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=User.objects.all()
+    )
+
+    class Meta:
+        model = Conversation
+        fields = ['id', 'participants']
