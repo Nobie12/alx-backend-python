@@ -1,8 +1,9 @@
-from .serializers import MessageSerializer
+from .serializers import MessageSerializer, RegisterSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .pagination import ChatPagination
 from rest_framework import generics
 from .models import Message, Conversation
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -53,3 +54,8 @@ class MessageDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Message.objects.filter(conversation__participants=self.request.user)
+
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = RegisterSerializer
