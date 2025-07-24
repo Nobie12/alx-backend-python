@@ -1,4 +1,6 @@
 from .serializers import MessageSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from .pagination import ChatPagination
 from rest_framework import generics
 from .models import Message, Conversation
 from rest_framework import status
@@ -11,10 +13,13 @@ from .permissions import IsOwner, IsParticipantOfConversation
 class MessageListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['conversation']
+    pagination_class = ChatPagination
 
     def get_queryset(self):
         # Only messages where the user is a participant of the conversation
-        return Message.objects.filter(conversation__participants=self.request.user)
+        return Message.objects.filter(conversation__participants=self.request.user).order_by('-created_at')
 
     def perform_create(self, serializer):
         conversation_id = self.request.data.get('conversation')
