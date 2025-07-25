@@ -4,6 +4,14 @@ from django.contrib.auth.models import AbstractUser
 
 # Custom User Model
 class CustomUser(AbstractUser):
+    """
+    Inherits:
+    - first_name
+    - last_name
+    - username
+    - password
+    - etc.
+    """
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
