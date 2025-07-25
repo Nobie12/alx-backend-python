@@ -1,28 +1,29 @@
 from rest_framework import serializers
-from .models import Message, Conversation
-from django.contrib.auth.models import User
+from .models import Message, Conversation, CustomUser
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['user_id', 'username', 'password', 'email', 'phone_number', 'role']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        return CustomUser.objects.create_user(**validated_data)
 
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['id', 'author', 'conversation', 'content', 'timestamp']
-        read_only_fields = ['author', 'timestamp']
+        fields = ['message_id', 'sender', 'conversation', 'message_body', 'sent_at']
+        read_only_fields = ['sender', 'sent_at']
 
-class RegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
 
 class ConversationSerializer(serializers.ModelSerializer):
     participants = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=User.objects.all()
+        many=True, queryset=CustomUser.objects.all()
     )
 
     class Meta:
         model = Conversation
-        fields = ['id', 'participants']
+        fields = ['conversation_id', 'participants', 'created_at']
