@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .pagination import ChatPagination
 from rest_framework import generics
 from .models import Message, Conversation
-from django.contrib.auth.models import User
+from .models import CustomUser
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -20,7 +20,7 @@ class MessageListCreateAPIView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # Only messages where the user is a participant of the conversation
-        return Message.objects.filter(conversation__participants=self.request.user).order_by('-timestamp')
+        return Message.objects.filter(conversation__participants=self.request.user).order_by('-sent_at')
 
     def perform_create(self, serializer):
         conversation_id = self.request.data.get('conversation')
@@ -31,7 +31,7 @@ class MessageListCreateAPIView(generics.ListCreateAPIView):
                 status=status.HTTP_403_FORBIDDEN
                 )
         try:
-            conversation = Conversation.objects.get(id=conversation_id)
+            conversation = Conversation.objects.get(conversation_id=conversation_id)
         except Conversation.DoesNotExist:
             return Response(
                 {"detail": "Conversation not found."},
@@ -43,7 +43,7 @@ class MessageListCreateAPIView(generics.ListCreateAPIView):
                 status=status.HTTP_403_FORBIDDEN
                 )
 
-        serializer.save(author=self.request.user)
+        serializer.save(sender=self.request.user)
 
 
 
@@ -57,7 +57,7 @@ class MessageDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
 
 
