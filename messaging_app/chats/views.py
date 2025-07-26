@@ -1,75 +1,54 @@
-from .serializers import MessageSerializer, RegisterSerializer, ConversationSerializer
-from django_filters.rest_framework import DjangoFilterBackend
-from .pagination import ChatPagination
-from rest_framework import generics
-from .models import Message, Conversation
-from .models import CustomUser
-from rest_framework import status
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import Message, Conversation, CustomUser
+from .serializers import MessageSerializer, ConversationSerializer, RegisterSerializer
+from .pagination import ChatPagination
 from .permissions import IsOwner, IsParticipantOfConversation
 
 
-# List and create messages — only if the user is in the conversation
-class MessageListCreateAPIView(generics.ListCreateAPIView):
+class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsParticipantOfConversation, IsOwner]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['conversation']
     pagination_class = ChatPagination
 
     def get_queryset(self):
-        # Only messages where the user is a participant of the conversation
-        return Message.objects.filter(conversation__participants=self.request.user).order_by('-sent_at')
+        return Message.objects.filter(
+            conversation__participants=self.request.user
+        ).order_by('-sent_at')
 
     def perform_create(self, serializer):
         conversation_id = self.request.data.get('conversation')
 
         if not conversation_id:
-            return Response(
-                {"detail": "conversation_id is required."},
-                status=status.HTTP_403_FORBIDDEN
-                )
+            raise serializers.ValidationError({"detail": "conversation_id is required."})
+
         try:
             conversation = Conversation.objects.get(conversation_id=conversation_id)
         except Conversation.DoesNotExist:
-            return Response(
-                {"detail": "Conversation not found."},
-                status=status.HTTP_403_FORBIDDEN
-                )
+            raise serializers.ValidationError({"detail": "Conversation not found."})
+
         if self.request.user not in conversation.participants.all():
-            return Response(
-                {"detail": "You are not a participant in this conversation."},
-                status=status.HTTP_403_FORBIDDEN
-                )
+            raise serializers.ValidationError({"detail": "You are not a participant in this conversation."})
 
         serializer.save(sender=self.request.user)
 
 
-
-# Retrieve, update, or delete a message — only if the user is the owner and in the conversation
-class MessageDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated, IsParticipantOfConversation, IsOwner]
-
-    def get_queryset(self):
-        return Message.objects.filter(conversation__participants=self.request.user)
-
-
-class RegisterView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = RegisterSerializer
-
-
-class ConversationListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Conversation.objects.all()
+class ConversationViewSet(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Only conversations the user is part of
         return Conversation.objects.filter(participants=self.request.user)
 
     def perform_create(self, serializer):
         conversation = serializer.save()
-        conversation.participants.add(self.request.user)  # Add current user by default
+        conversation.participants.add(self.request.user)
+
+
+class RegisterView(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = RegisterSerializer
