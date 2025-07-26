@@ -29,5 +29,6 @@ urlpatterns = [
 
     # Chats app
     path('api/', include('chats.urls')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
