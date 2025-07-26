@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Message, Conversation, CustomUser
 from .serializers import MessageSerializer, ConversationSerializer, RegisterSerializer
@@ -49,6 +50,6 @@ class ConversationViewSet(viewsets.ModelViewSet):
         conversation.participants.add(self.request.user)
 
 
-class RegisterView(viewsets.ModelViewSet):
+class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
