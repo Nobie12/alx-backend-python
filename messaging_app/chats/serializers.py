@@ -12,7 +12,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(required=False)
     role = serializers.CharField()
 
-    full_name = serializers.SerializerMethodField()  # 👈 for SerializerMethodField
+    full_name = serializers.SerializerMethodField()  # for SerializerMethodField
 
     class Meta:
         model = CustomUser
