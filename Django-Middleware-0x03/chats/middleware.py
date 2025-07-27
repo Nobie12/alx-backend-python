@@ -1,7 +1,7 @@
 # chats/middleware.py
 from django.http import HttpResponseForbidden
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 
 class RequestLoggingMiddleware:
@@ -83,3 +83,32 @@ class OffensiveLanguageMiddleware:
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
+
+
+class RolePermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        protected_paths = [
+            "/api/messages/delete",  # Add specific admin/moderator endpoints here
+            "/api/messages/update",
+        ]
+
+        if request.path in protected_paths:
+            user = request.user
+
+            if not user.is_authenticated:
+                return JsonResponse({
+                    "error": "Authentication required."
+                }, status=403)
+
+            # Check for role: assume user has a `role` attribute
+            role = getattr(user, 'role', None)
+
+            if role not in ['admin', 'moderator']:
+                return JsonResponse({
+                    "error": "You do not have permission to perform this action."
+                }, status=403)
+
+        return self.get_response(request)
