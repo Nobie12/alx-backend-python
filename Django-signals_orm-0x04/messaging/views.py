@@ -84,7 +84,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         unread_messages = (
             Message.unread.unread_for_user(user)
-            .only("id", "sender", "content", "created_at") 
+            .only("id", "sender", "content", "created_at")
             .select_related("sender")
         )
 
