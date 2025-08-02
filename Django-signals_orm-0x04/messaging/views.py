@@ -30,7 +30,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         top_level_messages = (
             Message.objects.filter(
                 parent_message__isnull=True,
-                sender=request.user 
+                sender=request.user
             )
             .select_related("sender", "receiver")
             .prefetch_related(
