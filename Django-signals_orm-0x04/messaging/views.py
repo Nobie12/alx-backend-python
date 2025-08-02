@@ -31,9 +31,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         top_level_messages = (
             Message.objects.filter(
                 parent_message__isnull=True,
-                sender=request.user 
+                sender=request.user
             )
-            .select_related("sender", "receiver") 
+            .select_related("sender", "receiver")
             .prefetch_related(
                 "replies",                # Prefetch direct replies
                 "replies__sender",        # Prefetch sender of replies
@@ -44,7 +44,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         threads = [build_thread(msg) for msg in top_level_messages]
         return Response(threads, status=status.HTTP_200_OK)
-    
+
     @cache.method_decorator(cache.cache_page(60))
     @action(detail=False, methods=["get"], url_path='')
     def get_messages(self, request):
@@ -62,7 +62,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             for msg in messages
         ]
         return Response(data, status=status.HTTP_200_OK)
-    
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
@@ -76,7 +76,7 @@ class UserViewSet(viewsets.ModelViewSet):
             {"detail": "Your account has been deleted"},
             status=status.HTTP_204_NO_CONTENT,
         )
-    
+
     # GET /users/unread
     @action(detail=False, methods=["get"], url_path="unread")
     def get_unread_msgs(self, request):
