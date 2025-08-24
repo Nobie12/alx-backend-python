@@ -8,11 +8,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                sh '''
-                git clone https://github.com/<your-username>/alx-backend-python.git
-                cd alx-backend-python
-                git branch
-                '''
+                // Use Jenkins' built-in git step with credentialsId
+                git branch: 'main',
+                    url: 'https://github.com/<your-username>/alx-backend-python.git',
+                    credentialsId: 'github-creds'
             }
         }
 
