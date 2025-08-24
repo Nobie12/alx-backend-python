@@ -1,24 +1,18 @@
 pipeline {
     agent any
 
-    tools {
-        // ShiningPanda manages Python
-        python 'Python3'  
-    }
-
     environment {
-        // Point to your GitHub repo (already configured in job SCM)
         VENV = 'venv'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git(
-                    branch: 'main',
-                    url: 'https://github.com/<your-username>/alx-backend-python.git',
-                    credentialsId: 'github-credentials'
-                )
+                sh '''
+                git clone https://github.com/<your-username>/alx-backend-python.git
+                cd alx-backend-python
+                git branch
+                '''
             }
         }
 
@@ -27,8 +21,8 @@ pipeline {
                 sh '''
                 python3 -m venv ${VENV}
                 . ${VENV}/bin/activate
-                pip install --upgrade pip
-                pip install -r messaging_app/requirements.txt
+                pip3 install --upgrade pip
+                pip3 install -r alx-backend-python/messaging_app/requirements.txt
                 '''
             }
         }
@@ -37,7 +31,7 @@ pipeline {
             steps {
                 sh '''
                 . ${VENV}/bin/activate
-                pytest messaging_app/tests --junitxml=report.xml
+                pytest alx-backend-python/messaging_app/tests --junitxml=report.xml
                 '''
             }
             post {
@@ -49,7 +43,6 @@ pipeline {
     }
 
     triggers {
-        // Disable auto build, allow manual trigger
-        // You could also add cron or webhook later if you want
+        // manual trigger only
     }
 }
