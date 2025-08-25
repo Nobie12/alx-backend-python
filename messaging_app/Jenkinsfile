@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        VENV = 'venv'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -21,11 +17,6 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo "Third Step!!"
-            }
-            post {
-                always {
-                    junit 'report.xml'
-                }
             }
         }
     }
