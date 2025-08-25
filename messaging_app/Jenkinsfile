@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    environment {
+        VENV = 'venv'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                
+                echo "Fisrt Step!!"
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                echo "Second Step!!"
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo "Third Step!!"
+            }
+            post {
+                always {
+                    junit 'report.xml'
+                }
+            }
+        }
+    }
+
+    triggers {
+        // manual trigger only
+    }
+}
