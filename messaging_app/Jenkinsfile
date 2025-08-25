@@ -8,8 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                
-                echo "Fisrt Step!!"
+                echo "First Step!!"
             }
         }
 
@@ -29,9 +28,5 @@ pipeline {
                 }
             }
         }
-    }
-
-    triggers {
-        // manual trigger only
     }
 }
