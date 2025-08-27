@@ -9,7 +9,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main',
+                url: 'https://github.com/Nobie12/alx-backend-python.git'
+                credentialsId: 'github-creds'
             }
         }
 
