@@ -4,14 +4,13 @@ pipeline {
     environment {
         VENV = 'venv'
         DOCKER_IMAGE = "ken1422/messaging_app"
-        DOCKER_CREDS = credentials('docker-creds')   // ID in Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/<your-username>/alx-backend-python.git',
+                    url: 'https://github.com/Nobie12/alx-backend-python.git',
                     credentialsId: 'github-creds'
             }
         }
@@ -52,20 +51,18 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Login
-                    sh "echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin"
+                    withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        // Login
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
 
-                    // Push both versioned & latest tags
-                    sh "docker push $DOCKER_IMAGE:${BUILD_NUMBER}"
-                    sh "docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest"
-                    sh "docker push $DOCKER_IMAGE:latest"
+                        // Push both versioned & latest tags
+                        sh "docker push $DOCKER_IMAGE:${BUILD_NUMBER}"
+                        sh "docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest"
+                        sh "docker push $DOCKER_IMAGE:latest"
+                    }
                 }
             }
         }
-    }
-
-    triggers {
-        // manual trigger only
     }
 
     post {
