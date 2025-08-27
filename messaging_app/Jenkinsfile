@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "your-dockerhub-username/messaging_app"
-        DOCKER_CREDENTIALS = 'dockerhub-credentials'
+        DOCKER_IMAGE = "ken1422/messaging_app"
+        DOCKER_CREDENTIALS = 'docker-creds'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Nobie12/alx-backend-python.git'
+                git branch: 'main', url: 'https://github.com/Nobie12/alx-backend-python.git',
+                credentialsId: 'github-creds'
             }
         }
 
