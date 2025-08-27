@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-username/alx-backend-python.git'
+                git branch: 'main', url: 'https://github.com/Nobie12/alx-backend-python.git'
             }
         }
 
