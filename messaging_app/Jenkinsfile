@@ -2,48 +2,29 @@ pipeline {
     agent any
 
     environment {
-        VENV = 'venv'
-        DOCKER_IMAGE = "ken1422/messaging_app"
+        DOCKER_IMAGE = "your-dockerhub-username/messaging_app"
+        DOCKER_CREDENTIALS = 'dockerhub-credentials'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Nobie12/alx-backend-python.git',
-                    credentialsId: 'github-creds'
-            }
-        }
-
-        stage('Setup Environment') {
-            steps {
-                sh '''
-                python3 -m venv ${VENV}
-                . ${VENV}/bin/activate
-                pip3 install --upgrade pip
-                pip3 install -r alx-backend-python/messaging_app/requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh '''
-                . ${VENV}/bin/activate
-                pytest alx-backend-python/messaging_app/tests --junitxml=report.xml
-                '''
-            }
-            post {
-                always {
-                    junit 'report.xml'
-                }
+                git branch: 'main', url: 'https://github.com/your-username/alx-backend-python.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} ./alx-backend-python/messaging_app"
+                    sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ./messaging_app"
+                }
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
                 }
             }
         }
@@ -51,26 +32,14 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        // Login
-                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    // Push with build number (unique)
+                    sh "docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
 
-                        // Push both versioned & latest tags
-                        sh "docker push $DOCKER_IMAGE:${BUILD_NUMBER}"
-                        sh "docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest"
-                        sh "docker push $DOCKER_IMAGE:latest"
-                    }
+                    // Also push 'latest' tag
+                    sh "docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
+                    sh "docker push ${DOCKER_IMAGE}:latest"
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Build & Push successful. Image available on Docker Hub: $DOCKER_IMAGE"
-        }
-        failure {
-            echo "❌ Build failed. Check Jenkins logs."
         }
     }
 }
