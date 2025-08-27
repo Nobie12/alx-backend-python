@@ -7,13 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Nobie12/alx-backend-python.git',
-                credentialsId: 'github-creds'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
